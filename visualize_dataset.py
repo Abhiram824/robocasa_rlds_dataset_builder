@@ -9,13 +9,11 @@ import matplotlib.pyplot as plt
 import wandb
 
 
-WANDB_ENTITY = None
+WANDB_ENTITY = "abhisuhaas1"
 WANDB_PROJECT = 'vis_rlds'
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('dataset_name', help='name of the dataset to visualize')
-args = parser.parse_args()
+
 
 if WANDB_ENTITY is not None:
     render_wandb = True
@@ -26,17 +24,14 @@ else:
 
 
 # create TF dataset
-dataset_name = args.dataset_name
-print(f"Visualizing data from dataset: {dataset_name}")
-module = importlib.import_module(dataset_name)
-ds = tfds.load(dataset_name, split='train')
-ds = ds.shuffle(100)
+ds = tfds.load("counter_to_cab", data_dir="/home/abhim/tensorflow_datasets", split='train')
+ds = ds.shuffle(10)
 
 # visualize episodes
 for i, episode in enumerate(ds.take(5)):
     images = []
     for step in episode['steps']:
-        images.append(step['observation']['image'].numpy())
+        images.append(step['observation']['robot0_agentview_left_image'].numpy())
     image_strip = np.concatenate(images[::4], axis=1)
     caption = step['language_instruction'].numpy().decode() + ' (temp. downsampled 4x)'
 
@@ -52,7 +47,7 @@ actions, states = [], []
 for episode in tqdm.tqdm(ds.take(500)):
     for step in episode['steps']:
         actions.append(step['action'].numpy())
-        states.append(step['observation']['state'].numpy())
+        states.append(step['observation']['robot0_eef_pos'].numpy())
 actions = np.array(actions)
 states = np.array(states)
 action_mean = actions.mean(0)
