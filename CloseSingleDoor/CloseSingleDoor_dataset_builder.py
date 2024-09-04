@@ -65,6 +65,11 @@ class CloseSingleDoor(tfds.core.GeneratorBasedBuilder):
                         dtype=np.float64,
                         doc='Robot action, 12 dimensional.',
                     ),
+                    'action_abs': tfds.features.Tensor(
+                        shape=(12,),
+                        dtype=np.float64,
+                        doc='Absolute robot action, 12 dimensional.',
+                    ),
                     'discount': tfds.features.Scalar(
                         dtype=np.float64,
                         doc='Discount if provided, default to 1.'
@@ -88,6 +93,11 @@ class CloseSingleDoor(tfds.core.GeneratorBasedBuilder):
                     'language_instruction': tfds.features.Text(
                         doc='Language Instruction.'
                     ),
+                    'mujoco_state': tfds.features.Tensor(
+                        shape=(None,),
+                        dtype=np.float64,
+                        doc='Mujoco state.'
+                    ),
                     # 'language_embedding': tfds.features.Tensor(
                     #     shape=(512,),
                     #     dtype=np.float32,
@@ -95,6 +105,12 @@ class CloseSingleDoor(tfds.core.GeneratorBasedBuilder):
                     #         'See https://tfhub.dev/google/universal-sentence-encoder-large/5'
                     # ),
                 }),
+                'xml_string': tfds.features.Text(  
+                        doc='mujoco XML string.'
+                    ),
+                'ep_meta': tfds.features.Text(
+                    doc='Episode metadata.'
+                ),
             }))
 
     def _split_generators(self, dl_manager: tfds.download.DownloadManager):
@@ -130,17 +146,21 @@ class CloseSingleDoor(tfds.core.GeneratorBasedBuilder):
                         'robot0_gripper_qpos': np.array(obs['robot0_gripper_qpos'][i]),
                     },
                     'action': demo['actions'][i],
+                    'action_abs': demo['actions_abs'][i],
                     'discount': 1.0,
                     'reward': demo['rewards'][i],
                     'is_first': i == 0,
                     'is_last': i == (len(data) - 1),
                     'is_terminal': demo['dones'][i],
                     'language_instruction': lang,
+                    'mujoco_state': demo['states'][i],
                 })
 
             # create output data sample
             sample = {
                 'steps': episode,
+                'xml_string': demo.attrs['model_file'],
+                'ep_meta': demo.attrs['ep_meta'],
             }
 
             # if you want to skip an example for whatever reason, simply return None
