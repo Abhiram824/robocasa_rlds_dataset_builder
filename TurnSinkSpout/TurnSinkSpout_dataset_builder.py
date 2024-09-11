@@ -8,7 +8,7 @@ import tensorflow_hub as hub
 import h5py
 import json
 
-class CloseSingleDoor(tfds.core.GeneratorBasedBuilder):
+class TurnSinkSpout(tfds.core.GeneratorBasedBuilder):
     """DatasetBuilder for example dataset."""
 
     VERSION = tfds.core.Version('1.0.0')
@@ -100,7 +100,7 @@ class CloseSingleDoor(tfds.core.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: tfds.download.DownloadManager):
         """Define data splits."""
         return {
-            'train': self._generate_examples(path='/data2/robocasa/datasets/v0.1/single_stage/kitchen_doors/CloseSingleDoor/mg/2024-05-04-22-34-56/demo_gentex_im128_randcams.hdf5'),
+            'train': self._generate_examples(path='/data2/robocasa/datasets/v0.1/single_stage/kitchen_microwave/TurnOnMicrowave/mg/2024-05-04-22-40-00/demo_gentex_im128.hdf5'),
         }
 
     def _generate_examples(self, path) -> Iterator[Tuple[str, Any]]:
@@ -129,7 +129,7 @@ class CloseSingleDoor(tfds.core.GeneratorBasedBuilder):
                         'robot0_eef_quat': np.array(obs['robot0_eef_quat'][i]),
                         'robot0_gripper_qpos': np.array(obs['robot0_gripper_qpos'][i]),
                     },
-                    'action': demo['actions_abs'][i],
+                    'action': demo['actions'][i],
                     'discount': 1.0,
                     'reward': demo['rewards'][i],
                     'is_first': i == 0,
@@ -141,8 +141,6 @@ class CloseSingleDoor(tfds.core.GeneratorBasedBuilder):
             # create output data sample
             sample = {
                 'steps': episode,
-                'xml_string': demo.attrs['model_file'],
-                'ep_meta': demo.attrs['ep_meta'],
             }
 
             # if you want to skip an example for whatever reason, simply return None
